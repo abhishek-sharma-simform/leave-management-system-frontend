@@ -29,6 +29,11 @@ function App() {
 
           <Route path="/leave-balances" element={<BalancePage />} />
 
+          {/* Every employee's team calendar: a manager's own reports, or an
+              employee's own teammates — the backend picks the team based on
+              role, so no role guard is needed here. */}
+          <Route path="/calendar" element={<TeamCalendarPage />} />
+
           {/* MANAGER-only, mirroring requireRole("MANAGER"). */}
           <Route element={<ManagerRoute />}>
             <Route path="/manager/requests" element={<PendingRequestsPage />} />
@@ -36,7 +41,6 @@ function App() {
               path="/manager/requests/:id"
               element={<ManagerRequestDetailPage />}
             />
-            <Route path="/calendar" element={<TeamCalendarPage />} />
           </Route>
         </Route>
       </Route>

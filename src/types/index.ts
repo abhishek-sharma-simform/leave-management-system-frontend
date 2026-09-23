@@ -114,3 +114,21 @@ export type ManagerRequestDetail = LeaveRequest & {
 };
 
 export type SortOrder = "asc" | "desc";
+
+/** One entry of GET /leave-requests/team-on-leave's `teammatesOnLeave` array. */
+export type TeammateOnLeave = {
+  userId: number;
+  name: string;
+  email: string;
+  leaveType: string;
+  startDate: string;
+  endDate: string;
+  status: LeaveRequestStatus;
+};
+
+/** GET /leave-requests/team-on-leave */
+export type TeamOnLeaveResponse = {
+  startDate: string;
+  endDate: string;
+  teammatesOnLeave: TeammateOnLeave[];
+};

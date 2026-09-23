@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import type { FormEvent } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, UserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import * as leaveRequestsApi from "@/api/leaveRequests";
@@ -8,6 +8,7 @@ import * as leaveTypesApi from "@/api/leaveTypes";
 import { DateRangePicker } from "@/components/shared/DateRangePicker";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -20,8 +21,17 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useApiRequest } from "@/hooks/useApiRequest";
 import { getErrorMessage } from "@/lib/errors";
+import { formatDate } from "@/lib/format";
+import type { TeammateOnLeave } from "@/types";
+
+function teammateDateLabel(teammate: TeammateOnLeave) {
+  const start = formatDate(teammate.startDate);
+  const end = formatDate(teammate.endDate);
+  return start === end ? start : `${start} – ${end}`;
+}
 
 export function ApplyLeavePage() {
   const navigate = useNavigate();
@@ -41,6 +51,23 @@ export function ApplyLeavePage() {
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isRangeComplete = Boolean(
+    startDate && endDate && startDate <= endDate,
+  );
+
+  const fetchTeamOnLeave = useCallback(
+    (signal: AbortSignal) =>
+      isRangeComplete
+        ? leaveRequestsApi.teamOnLeave(startDate, endDate, signal)
+        : Promise.resolve([]),
+    [isRangeComplete, startDate, endDate],
+  );
+  const {
+    data: teammatesOnLeave,
+    error: teamOnLeaveError,
+    isLoading: isLoadingTeamOnLeave,
+  } = useApiRequest(fetchTeamOnLeave);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -131,6 +158,48 @@ export function ApplyLeavePage() {
                   }}
                 />
               </div>
+
+              {isRangeComplete && (
+                <div className="space-y-2 border-t pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Also on leave during this period
+                  </p>
+                  {isLoadingTeamOnLeave ? (
+                    <div className="flex gap-2">
+                      <Skeleton className="size-8 rounded-full" />
+                      <Skeleton className="size-8 rounded-full" />
+                    </div>
+                  ) : teamOnLeaveError ? (
+                    <p className="text-sm text-destructive">
+                      {teamOnLeaveError}
+                    </p>
+                  ) : teammatesOnLeave && teammatesOnLeave.length > 0 ? (
+                    <div className="flex -space-x-2">
+                      {teammatesOnLeave.map((teammate) => (
+                        <Tooltip key={`${teammate.userId}-${teammate.startDate}`}>
+                          <TooltipTrigger asChild>
+                            <Avatar className="border-2 border-background">
+                              <AvatarFallback>
+                                <UserRound className="size-4 text-muted-foreground" />
+                              </AvatarFallback>
+                            </Avatar>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-medium">{teammate.name}</p>
+                            <p className="text-primary-foreground/80">
+                              {teammateDateLabel(teammate)}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No one else on your team is on leave in this period.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="reason">Reason (optional)</Label>

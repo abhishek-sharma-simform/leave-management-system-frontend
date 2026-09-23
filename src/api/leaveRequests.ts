@@ -5,6 +5,8 @@ import type {
   LeaveRequestStatus,
   Paginated,
   SortOrder,
+  TeammateOnLeave,
+  TeamOnLeaveResponse,
 } from "@/types";
 
 export type ListMineParams = {
@@ -59,4 +61,22 @@ export function history(id: number, signal?: AbortSignal) {
       signal,
     })
     .then((res) => res.data);
+}
+
+/**
+ * Teammates (same manager, excluding the caller) whose leave overlaps the
+ * given range. Requires no particular role — an employee sees their own
+ * teammates, a manager sees theirs.
+ */
+export function teamOnLeave(
+  startDate: string,
+  endDate: string,
+  signal?: AbortSignal,
+): Promise<TeammateOnLeave[]> {
+  return api
+    .get<TeamOnLeaveResponse>("/leave-requests/team-on-leave", {
+      params: { startDate, endDate },
+      signal,
+    })
+    .then((res) => res.data.teammatesOnLeave);
 }

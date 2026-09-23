@@ -17,12 +17,12 @@ const EMPLOYEE_LINKS = [
   { to: "/leave-requests/apply", label: "Apply Leave", icon: FilePlus2 },
   { to: "/leave-requests/me", label: "My Requests", icon: ListChecks },
   { to: "/leave-balances", label: "Balances", icon: Wallet },
+  { to: "/calendar", label: "Team Calendar", icon: CalendarDays },
 ];
 
 // Only rendered for MANAGER accounts, matching the backend's role guard.
 const MANAGER_LINKS = [
   { to: "/manager/requests", label: "Pending Requests", icon: Inbox },
-  { to: "/calendar", label: "Team Calendar", icon: CalendarDays },
 ];
 
 export function AppLayout() {
