@@ -16,19 +16,30 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApiRequest } from "@/hooks/useApiRequest";
-import type { SortOrder } from "@/types";
+import type { LeaveRequestStatus, SortOrder } from "@/types";
 
 const PAGE_SIZE = 10;
+const ALL_STATUSES = "ALL";
 
 // This endpoint's Zod allowlist is narrower than the employee one — no
-// `status` sort, because the list is hardcoded to PENDING server-side.
+// `status` sort, since sorting by the very field being filtered on is moot.
 const SORT_FIELDS = [
   { value: "createdAt", label: "Created" },
   { value: "startDate", label: "Start date" },
 ] as const;
 
+const STATUSES: LeaveRequestStatus[] = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "CANCELLED",
+];
+
 export function PendingRequestsPage() {
   const [page, setPage] = useState(1);
+  // Defaults to PENDING — the queue managers land on to act on — but any
+  // status (or "all") is one filter change away.
+  const [status, setStatus] = useState<string>("PENDING");
   const [sortBy, setSortBy] =
     useState<(typeof SORT_FIELDS)[number]["value"]>("createdAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
@@ -36,28 +47,62 @@ export function PendingRequestsPage() {
   const fetchPending = useCallback(
     (signal: AbortSignal) =>
       managerApi.listPending(
-        { page, limit: PAGE_SIZE, sortBy, sortOrder },
+        {
+          page,
+          limit: PAGE_SIZE,
+          sortBy,
+          sortOrder,
+          // The API rejects an unknown status, so "all" means omitting it.
+          status:
+            status === ALL_STATUSES
+              ? undefined
+              : (status as LeaveRequestStatus),
+        },
         signal,
       ),
-    [page, sortBy, sortOrder],
+    [page, sortBy, sortOrder, status],
   );
 
   const { data, error, isLoading, reload } = useApiRequest(fetchPending);
 
+  // Any filter/sort change invalidates the current page number.
+  function changeFilter(next: () => void) {
+    next();
+    setPage(1);
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Pending requests"
-        description="Leave requests from your team that are waiting on you."
+        title="Team requests"
+        description="Leave requests from your team, filterable by status."
       />
 
       <div className="flex flex-wrap items-center gap-2">
         <Select
+          value={status}
+          onValueChange={(value) => changeFilter(() => setStatus(value))}
+        >
+          <SelectTrigger className="w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_STATUSES}>All statuses</SelectItem>
+            {STATUSES.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
           value={sortBy}
-          onValueChange={(value) => {
-            setSortBy(value as (typeof SORT_FIELDS)[number]["value"]);
-            setPage(1);
-          }}
+          onValueChange={(value) =>
+            changeFilter(() =>
+              setSortBy(value as (typeof SORT_FIELDS)[number]["value"]),
+            )
+          }
         >
           <SelectTrigger className="w-44">
             <SelectValue />
@@ -73,10 +118,11 @@ export function PendingRequestsPage() {
 
         <Button
           variant="outline"
-          onClick={() => {
-            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-            setPage(1);
-          }}
+          onClick={() =>
+            changeFilter(() =>
+              setSortOrder(sortOrder === "asc" ? "desc" : "asc"),
+            )
+          }
         >
           <ArrowDownUp className="size-4" />
           {sortOrder === "asc" ? "Ascending" : "Descending"}
@@ -89,8 +135,12 @@ export function PendingRequestsPage() {
         <ErrorState message={error} onRetry={reload} />
       ) : !data || data.data.length === 0 ? (
         <EmptyState
-          title="Nothing pending"
-          description="Your team has no leave requests awaiting a decision."
+          title="Nothing found"
+          description={
+            status === ALL_STATUSES
+              ? "Your team has no leave requests yet."
+              : `Your team has no ${status.toLowerCase()} requests.`
+          }
         />
       ) : (
         <div className="rounded-lg border bg-background p-2">

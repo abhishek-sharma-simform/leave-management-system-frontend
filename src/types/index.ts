@@ -115,6 +115,24 @@ export type ManagerRequestDetail = LeaveRequest & {
 
 export type SortOrder = "asc" | "desc";
 
+/**
+ * One row of GET /manager/decisions — every approve/reject the calling
+ * manager has ever made, regardless of which of their reports (past or
+ * present) it was on.
+ */
+export type ManagerDecision = {
+  id: number;
+  requestId: number;
+  actorId: number;
+  action: LeaveDecisionAction;
+  reason: string | null;
+  decidedAt: string;
+  request: LeaveRequest & {
+    user: { id: number; name: string; email: string };
+    leaveType: LeaveType;
+  };
+};
+
 /** One entry of GET /leave-requests/team-on-leave's `teammatesOnLeave` array. */
 export type TeammateOnLeave = {
   userId: number;

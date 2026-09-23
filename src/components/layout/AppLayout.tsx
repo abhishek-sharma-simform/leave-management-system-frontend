@@ -1,6 +1,7 @@
 import {
   CalendarDays,
   FilePlus2,
+  History,
   Inbox,
   LayoutDashboard,
   ListChecks,
@@ -22,7 +23,8 @@ const EMPLOYEE_LINKS = [
 
 // Only rendered for MANAGER accounts, matching the backend's role guard.
 const MANAGER_LINKS = [
-  { to: "/manager/requests", label: "Pending Requests", icon: Inbox },
+  { to: "/manager/requests", label: "Team Requests", icon: Inbox },
+  { to: "/manager/decisions", label: "Audit Trail", icon: History },
 ];
 
 export function AppLayout() {

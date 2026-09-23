@@ -8,6 +8,7 @@ import { BalancePage } from "@/features/leave-balances/BalancePage";
 import { ApplyLeavePage } from "@/features/leave-requests/ApplyLeavePage";
 import { MyRequestsPage } from "@/features/leave-requests/MyRequestsPage";
 import { RequestDetailPage } from "@/features/leave-requests/RequestDetailPage";
+import { AuditTrailPage } from "@/features/manager/AuditTrailPage";
 import { ManagerRequestDetailPage } from "@/features/manager/ManagerRequestDetailPage";
 import { PendingRequestsPage } from "@/features/manager/PendingRequestsPage";
 import { TeamCalendarPage } from "@/features/manager/TeamCalendarPage";
@@ -41,6 +42,7 @@ function App() {
               path="/manager/requests/:id"
               element={<ManagerRequestDetailPage />}
             />
+            <Route path="/manager/decisions" element={<AuditTrailPage />} />
           </Route>
         </Route>
       </Route>

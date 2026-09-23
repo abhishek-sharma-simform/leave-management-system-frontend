@@ -1,6 +1,9 @@
 import { api } from "@/lib/axios";
 import type {
+  LeaveDecisionAction,
   LeaveRequest,
+  LeaveRequestStatus,
+  ManagerDecision,
   ManagerRequestDetail,
   Paginated,
   SortOrder,
@@ -11,9 +14,10 @@ export type ListPendingParams = {
   limit?: number;
   sortBy?: "createdAt" | "startDate";
   sortOrder?: SortOrder;
+  /** Omitting this returns requests in every status. */
+  status?: LeaveRequestStatus;
 };
 
-/** Hardcoded to PENDING server-side, so there is no status filter here. */
 export function listPending(params: ListPendingParams, signal?: AbortSignal) {
   return api
     .get<Paginated<LeaveRequest>>("/manager/requests", { params, signal })
@@ -35,5 +39,27 @@ export function approve(id: number) {
 export function reject(id: number, reason: string) {
   return api
     .post<{ message: string }>(`/manager/requests/${id}/reject`, { reason })
+    .then((res) => res.data);
+}
+
+export type ListDecisionsParams = {
+  page?: number;
+  limit?: number;
+  sortOrder?: SortOrder;
+  /** Omitting this returns both approvals and rejections. */
+  action?: LeaveDecisionAction;
+};
+
+/**
+ * The calling manager's own audit trail — every approve/reject they've made,
+ * across every report. Only sortable by `decidedAt` server-side, so that's
+ * hardcoded rather than exposed as a param.
+ */
+export function listDecisions(params: ListDecisionsParams, signal?: AbortSignal) {
+  return api
+    .get<Paginated<ManagerDecision>>("/manager/decisions", {
+      params: { ...params, sortBy: "decidedAt" },
+      signal,
+    })
     .then((res) => res.data);
 }
