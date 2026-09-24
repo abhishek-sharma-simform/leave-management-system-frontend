@@ -1,122 +1,55 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { Navigate, Route, Routes } from "react-router-dom";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { ManagerRoute } from "@/components/layout/ManagerRoute";
+import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import { LoginPage } from "@/features/auth/LoginPage";
+import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { BalancePage } from "@/features/leave-balances/BalancePage";
+import { ApplyLeavePage } from "@/features/leave-requests/ApplyLeavePage";
+import { MyRequestsPage } from "@/features/leave-requests/MyRequestsPage";
+import { RequestDetailPage } from "@/features/leave-requests/RequestDetailPage";
+import { AuditTrailPage } from "@/features/manager/AuditTrailPage";
+import { ManagerRequestDetailPage } from "@/features/manager/ManagerRequestDetailPage";
+import { PendingRequestsPage } from "@/features/manager/PendingRequestsPage";
+import { TeamCalendarPage } from "@/features/manager/TeamCalendarPage";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
 
-      <div className="ticks"></div>
+      {/* Everything below requires a session, mirroring authMiddleware. */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <Route path="/leave-requests/apply" element={<ApplyLeavePage />} />
+          <Route path="/leave-requests/me" element={<MyRequestsPage />} />
+          <Route path="/leave-requests/:id" element={<RequestDetailPage />} />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          <Route path="/leave-balances" element={<BalancePage />} />
+
+          {/* Every employee's team calendar: a manager's own reports, or an
+              employee's own teammates — the backend picks the team based on
+              role, so no role guard is needed here. */}
+          <Route path="/calendar" element={<TeamCalendarPage />} />
+
+          {/* MANAGER-only, mirroring requireRole("MANAGER"). */}
+          <Route element={<ManagerRoute />}>
+            <Route path="/manager/requests" element={<PendingRequestsPage />} />
+            <Route
+              path="/manager/requests/:id"
+              element={<ManagerRequestDetailPage />}
+            />
+            <Route path="/manager/decisions" element={<AuditTrailPage />} />
+          </Route>
+        </Route>
+      </Route>
+
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
