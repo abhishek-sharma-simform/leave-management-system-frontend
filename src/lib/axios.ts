@@ -1,11 +1,7 @@
 import axios from "axios";
 import { clearAuth, getStoredToken } from "./authStorage";
-
-// Relative base URL: in dev, Vite proxies /api to localhost:5000 (see
-// vite.config.ts); in production the same path can be served by a reverse
-// proxy in front of the API, so no build-time switch is needed.
 export const api = axios.create({
-  baseURL: "/api/v1",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api/v1",
 });
 
 api.interceptors.request.use((config) => {

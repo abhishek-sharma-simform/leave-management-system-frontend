@@ -30,7 +30,7 @@ export function getErrorMessage(error: unknown): string {
     if (data?.error) return data.error;
 
     if (error.code === "ERR_NETWORK") {
-      return "Cannot reach the server. Is the backend running on port 5000?";
+      return "Cannot reach the server. Is the backend running?";
     }
   }
 

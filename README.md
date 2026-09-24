@@ -28,21 +28,22 @@ The backend must be running first:
 ```bash
 cd ../leave-management-system
 npx prisma db seed   # once, for the demo accounts and leave types
-npm run dev          # listens on :5000
+npm run dev
 ```
 
-Then:
+Then, copy `.env.example` to `.env` and set `VITE_API_BASE_URL` to the
+backend's URL:
 
 ```bash
+cp .env.example .env
 npm install
 npm run dev          # http://localhost:5173
 ```
 
-Vite proxies `/api` to `http://localhost:5000` (see `server.proxy` in
+Vite proxies `/api` to `VITE_API_BASE_URL` (see `server.proxy` in
 [vite.config.ts](vite.config.ts)), so the app is same-origin in development and
-needs no CORS configuration. To point at a backend on a different port or host,
-change the proxy `target` there — the Axios base URL is the relative path
-`/api/v1` and does not need touching.
+needs no CORS configuration. To point at a backend on a different port or
+host, change `VITE_API_BASE_URL` in `.env` — nothing else needs touching.
 
 Other scripts:
 
