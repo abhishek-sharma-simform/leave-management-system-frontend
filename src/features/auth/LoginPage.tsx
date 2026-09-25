@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { CalendarDays, Loader2 } from "lucide-react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,17 +30,13 @@ const DEMO_ACCOUNTS = [
 export function LoginPage() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Where ProtectedRoute bounced them from, if anywhere.
-  const from = (location.state as { from?: string } | null)?.from;
-
   if (user) {
-    return <Navigate to={from ?? "/dashboard"} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -51,7 +47,7 @@ export function LoginPage() {
       const loggedIn = await login(email, password);
 
       toast.success(`Welcome back, ${loggedIn.name}`);
-      navigate(from ?? "/dashboard", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
